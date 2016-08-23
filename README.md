@@ -11,12 +11,13 @@ MS-CNN is a unified multi-scale object detection framework based on deep convolu
 ### Citations
 
 If you use our code/model/data, please cite our paper:
-@inproceedings{cai16mscnn,
-  author = author = {Zhaowei Cai and Quanfu Fan and Rogerio Feris and Nuno Vasconcelos},
-  Title = {A Unified Multi-scale Deep Convolutional Neural Network for Fast Object Detection},
-  booktitle = {ECCV},
-  Year  = {2016}
-}
+
+    @inproceedings{cai16mscnn,
+      author = author = {Zhaowei Cai and Quanfu Fan and Rogerio Feris and Nuno Vasconcelos},
+      Title = {A Unified Multi-scale Deep Convolutional Neural Network for Fast Object Detection},
+      booktitle = {ECCV},
+      Year  = {2016}
+    }
 
 ### Requirements
 
