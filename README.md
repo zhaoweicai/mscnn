@@ -73,12 +73,10 @@ If you use our code/model/data, please cite our paper:
 ### Pretrained model (KITTI car)
 
    Download pre-trained MS-CNN models
-   
     ```Shell
     cd $MSCNN_ROOT/examples/kitti_car/
     sh fetch_mscnn_car_model.sh
-    ```
-    
+    ``` 
    This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples/kitti_car/mscnn-8s-768-trainval-pretrained/`. You can produce exactly the same results as described in our paper with these pretrained models.
 
 ### Testing Demo (KITTI car)
