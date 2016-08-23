@@ -1,0 +1,33 @@
+#include <vector>
+
+#include "caffe/data_layers.hpp"
+
+namespace caffe {
+
+template <typename Dtype>
+void BasePrefetchingDataLayer<Dtype>::Forward_gpu(
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  Batch<Dtype>* batch = prefetch_full_.pop("Data layer prefetch queue empty");
+  // Reshape to loaded data.
+  top[0]->ReshapeLike(batch->data_);
+  // Copy the data
+  caffe_copy(batch->data_.count(), batch->data_.gpu_data(),
+      top[0]->mutable_gpu_data());
+  if (this->output_labels_) {
+    for (int nn = 0; nn < batch->labels_.size(); nn++) {
+      // Reshape to loaded labels.
+      top[nn+1]->ReshapeLike(*batch->labels_[nn]);
+      // Copy the labels.
+      caffe_copy(batch->labels_[nn]->count(), batch->labels_[nn]->gpu_data(),
+                 top[nn+1]->mutable_gpu_data());
+    }
+  }
+  // Ensure the copy is synchronous wrt the host, so that the next batch isn't
+  // copied in meanwhile.
+  CUDA_CHECK(cudaStreamSynchronize(cudaStreamDefault));
+  prefetch_free_.push(batch);
+}
+
+INSTANTIATE_LAYER_GPU_FORWARD(BasePrefetchingDataLayer);
+
+}  // namespace caffe
