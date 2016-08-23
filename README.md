@@ -72,16 +72,16 @@ If you use our code/model/data, please cite our paper:
 
 ### Pretrained model (KITTI car)
 
-   Download pre-trained MS-CNN models
-    ```Shell
-    cd $MSCNN_ROOT/examples/kitti_car/
-    sh fetch_mscnn_car_model.sh
-    ``` 
-   This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples/kitti_car/mscnn-8s-768-trainval-pretrained/`. You can produce exactly the same results as described in our paper with these pretrained models.
+Download pre-trained MS-CNN models
+```Shell
+cd $MSCNN_ROOT/examples/kitti_car/
+sh fetch_mscnn_car_model.sh
+``` 
+This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples/kitti_car/mscnn-8s-768-trainval-pretrained/`. You can produce exactly the same results as described in our paper with these pretrained models.
 
 ### Testing Demo (KITTI car)
 
-   Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo scripts. The default setting is to test the pretrained model. The final results will be saved as .txt files.
+Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo scripts. The default setting is to test the pretrained model. The final results will be saved as .txt files.
 
 ### Disclaimer
 
