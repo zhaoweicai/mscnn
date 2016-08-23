@@ -23,7 +23,7 @@ If you use our code/model/data, please cite our paper:
 
 1. cuDNN is required to have the same running speed described in our paper. For now, only cuDNN 7.0 is supported. 
 
-2. If you want to use our MATLAB scripts to run the detection demo, MATLAB wrapper is required. Please build matcaffe before running the detection demo. 
+2. If you want to use our MATLAB scripts to run the detection demo, caffe MATLAB wrapper is required. Please build matcaffe before running the detection demo. 
 
 3. This code has been tested on Ubuntu 14.04 with an NVIDIA Titan GPU.
 
@@ -50,7 +50,7 @@ If you use our code/model/data, please cite our paper:
 
 ### Training MS-CNN (KITTI car)
 
-1. Set up KITTI dataset by yourself
+1. Set up KITTI dataset by yourself.
 
 2. Get the training data for KITTI
     ```Shell
@@ -58,16 +58,16 @@ If you use our code/model/data, please cite our paper:
     sh get_kitti_data.sh
     ```
     
-    This will download train/val split image lists for the experiments, and window files for training/finetuning MS-CNN models. You can also use the provided MATLAB scripts to generate your own window files. If you use the provided window files, replace `/your/KITTI/path/` in the files to your KITTI path.
+    This will download train/val split image lists for the experiments, and window files for training/finetuning MS-CNN models. You can also use the provided MATLAB scripts `mscnn_kitti_car_window_file.m` under `$MSCNN_ROOT/data/kitti/` to generate your own window files. If you use the provided window files, replace `/your/KITTI/path/` in the files to your KITTI path.
 
-3. Download VGG16 from [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), and put it into `$MSCNN_ROOT/models/VGG/`
+3. Download VGG16 from [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), and put it into `$MSCNN_ROOT/models/VGG/`.
 
-4. Now you can start to train MS-CNN models. Multiple shell scripts are provided to train different models described in our paper. We take `mscnn-7s-576-2x-train` for example. 
+4. Now you can start to train MS-CNN models. Multiple shell scripts are provided to train different models described in our paper. We take `mscnn-7s-576-2x` for example. 
     ```Shell
-    cd $MSCNN_ROOT/examples/kitti_car/mscnn-7s-576-2x-train/
+    cd $MSCNN_ROOT/examples/kitti_car/mscnn-7s-576-2x/
     sh train_mscnn.sh
     ```
-   As described in the paper, the training process is split into two steps. Usually the first step can be shared by different models if you only have modifications on detection sub-network. For example, the first training step can be shared by `mscnn-7s-576-2x-train` and `mscnn-7s-576-train`. Meanwhile, log files will be generated along the training procedures. 
+   As described in the paper, the training process is split into two steps. Usually the first step can be shared by different models if you only have modifications on detection sub-network. For example, the first training step can be shared by `mscnn-7s-576-2x` and `mscnn-7s-576`. Meanwhile, log files will be generated along the training procedures. 
  
 
 ### Pretrained model (KITTI car)
@@ -81,13 +81,13 @@ This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples
 
 ### Testing Demo (KITTI car)
 
-Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo scripts. The default setting is to test the pretrained model. The final results will be saved as .txt files.
+Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo script. The default setting is to test the pretrained model. The final results will be saved as .txt files.
 
 ### Disclaimer
 
 1. This implementation is developed on an old version of Caffe. Some new layers of current Caffe may not be supported in this implementation. But some layers (e.g. "batch_norm", "scale", "bias") are merged into this repository, such that ResNet is supported. 
 
-2. The CPU version is not fully tested. GPU version is strongly recommended.
+2. The CPU version is not fully tested. The GPU version is strongly recommended.
  
 3. Since some changes have been made after ECCV submission, you may not have exactly the same results in the paper by training your own models. But you should have equivelant performance. 
 
