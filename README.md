@@ -55,7 +55,7 @@ If you use our code/model/data, please cite our paper:
 2. Get the training data for KITTI
     ```Shell
     cd $MSCNN_ROOT/data/
-    sh get_kitti_models.sh
+    sh get_kitti_data.sh
     ```
     
     This will download train/val split image lists for the experiments, and window files for training/finetuning MS-CNN models. You can also use the provided MATLAB scripts to generate your own window files. If you use the provided window files, replace `/your/KITTI/path/` in the files to your KITTI path.
