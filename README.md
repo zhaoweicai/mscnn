@@ -57,17 +57,17 @@ If you use our code/model/data, please cite our paper:
     cd $MSCNN_ROOT/data/
     sh get_kitti_models.sh
     ```
+    
+    This will download train/val split image lists for the experiments, and window files for training/finetuning MS-CNN models. You can also use the provided MATLAB scripts to generate your own window files. If you use the provided window files, replace `/your/KITTI/path/` in the files to your KITTI path.
 
-    This will download train/val split image lists for the experiments, and window files for training/finetuning MS-CNN models. You can also use the provided MATLAB scripts to generate your own window files. If you use the provided window files, replace "/your/KITTI/path/" in the files to your KITTI path.
+3. Download VGG16 from [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), and put it into `$MSCNN_ROOT/models/VGG/`
 
-3. Download VGG16 from [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), and put it into '$MSCNN_ROOT/models/VGG/'
-
-4. Now you can start to train MS-CNN models. Multiple shell scripts are provided to train different models described in our paper. We take 'mscnn-7s-576-2x-train' for example. 
+4. Now you can start to train MS-CNN models. Multiple shell scripts are provided to train different models described in our paper. We take `mscnn-7s-576-2x-train` for example. 
     ```Shell
     cd $MSCNN_ROOT/examples/kitti_car/mscnn-7s-576-2x-train/
     sh train_mscnn.sh
     ```
-   As described in the paper, the training process is split into two steps. Usually the first step can be shared by different models if you only have modifications on detection sub-network. For example, the first training step can be shared by 'mscnn-7s-576-2x-train' and 'mscnn-7s-576-train'. Meanwhile, log files will be generated along the training procedures. 
+   As described in the paper, the training process is split into two steps. Usually the first step can be shared by different models if you only have modifications on detection sub-network. For example, the first training step can be shared by `mscnn-7s-576-2x-train` and `mscnn-7s-576-train`. Meanwhile, log files will be generated along the training procedures. 
  
 
 ### Pretrained model (KITTI car)
@@ -77,12 +77,12 @@ If you use our code/model/data, please cite our paper:
     cd $MSCNN_ROOT/examples/kitti_car/
     sh fetch_mscnn_car_model.sh
     ```
-
-    This will download the pretrained model for KITTI car into '$MSCNN_ROOT/examples/kitti_car/mscnn-8s-768-trainval-pretrained/'. You can produce exactly the same results as described in our paper with these pretrained models.
+    
+    This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples/kitti_car/mscnn-8s-768-trainval-pretrained/`. You can produce exactly the same results as described in our paper with these pretrained models.
 
 ### Testing Demo (KITTI car)
 
-   Once the pretrained models or models trained by yourself are available, you can use the MATLAB script 'run_mscnn_detection.m' under '$MSCNN_ROOT/examples/kitti_car/' to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo scripts. The default setting is to test the pretrained model. The final results will be saved as .txt files.
+   Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo scripts. The default setting is to test the pretrained model. The final results will be saved as .txt files.
 
 ### Disclaimer
 
@@ -94,7 +94,7 @@ If you use our code/model/data, please cite our paper:
 
 4. Since the numbers of training samples vary vastly for different classes, the model robustness varies too (car>ped>cyc).
 
-5. Although the final results we submitted were from model 'mscnn-8s-768-trainval', our later experiments have shown that 'mscnn-7s-576-2x-trainval' can achieve even better performance for car. With this model, detection can run 4fps. For ped/cyc however, the performance decreases due to the much less training instances.  
+5. Although the final results we submitted were from model `mscnn-8s-768-trainval`, our later experiments have shown that `mscnn-7s-576-2x-trainval` can achieve even better performance for car. With this model, detection can run 4fps. For ped/cyc however, the performance decreases due to the much less training instances.  
 
 6. If the training does not converge or the performance is very bad, try some other random seeds. You should obtain fair performance after a few tries. Due to the randomness, you cann't fully reproduce the same models, but the performance should be close.
 
