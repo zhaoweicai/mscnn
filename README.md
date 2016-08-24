@@ -21,7 +21,7 @@ If you use our code/model/data, please cite our paper:
 
 ### Requirements
 
-1. cuDNN is required to have the same running speed described in our paper. For now, only cuDNN 7.0 is supported. 
+1. cuDNN is required to have the same running speed described in our paper. For now, only CUDA 7.5 with cuDNN v3 is tested. 
 
 2. If you want to use our MATLAB scripts to run the detection demo, caffe MATLAB wrapper is required. Please build matcaffe before running the detection demo. 
 
