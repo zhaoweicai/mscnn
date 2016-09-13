@@ -13,7 +13,7 @@ MS-CNN is a unified multi-scale object detection framework based on deep convolu
 If you use our code/model/data, please cite our paper:
 
     @inproceedings{cai16mscnn,
-      author = author = {Zhaowei Cai and Quanfu Fan and Rogerio Feris and Nuno Vasconcelos},
+      author = {Zhaowei Cai and Quanfu Fan and Rogerio Feris and Nuno Vasconcelos},
       Title = {A Unified Multi-scale Deep Convolutional Neural Network for Fast Object Detection},
       booktitle = {ECCV},
       Year  = {2016}
@@ -21,7 +21,7 @@ If you use our code/model/data, please cite our paper:
 
 ### Requirements
 
-1. cuDNN is required to have the same running speed described in our paper. For now, only CUDA 7.5 with cuDNN v3 is tested. 
+1. cuDNN is required to avoid the issue of out-of-memory and have the same running speed described in our paper. For now, only CUDA 7.5 with cuDNN v3 is tested. 
 
 2. If you want to use our MATLAB scripts to run the detection demo, caffe MATLAB wrapper is required. Please build matcaffe before running the detection demo. 
 
