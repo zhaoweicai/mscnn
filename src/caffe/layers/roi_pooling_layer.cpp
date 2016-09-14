@@ -75,6 +75,12 @@ void ROIPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     int roi_start_h = round((bottom_rois[2]-pad_h) * spatial_scale_);
     int roi_end_w = round((bottom_rois[3]+pad_w) * spatial_scale_);
     int roi_end_h = round((bottom_rois[4]+pad_h) * spatial_scale_);
+    // clipping
+    roi_start_w = max(roi_start_w,0); roi_start_h = max(roi_start_h,0);
+    int img_width = round(width_/spatial_scale_);
+    int img_height = round(height_/spatial_scale_);
+    roi_end_w = min(img_width-1,roi_end_w);
+    roi_end_h = min(img_height-1,roi_end_h);
     
     int roi_height = max(roi_end_h - roi_start_h + 1, 1);
     int roi_width = max(roi_end_w - roi_start_w + 1, 1);
