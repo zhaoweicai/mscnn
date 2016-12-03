@@ -83,6 +83,10 @@ This will download the pretrained model for KITTI car into `$MSCNN_ROOT/examples
 
 Once the pretrained models or models trained by yourself are available, you can use the MATLAB script `run_mscnn_detection.m` under `$MSCNN_ROOT/examples/kitti_car/` to obtain the detection and proposal results. Set the right dataset path and choose the model that you want to test in the demo script. The default setting is to test the pretrained model. The final results will be saved as .txt files.
 
+### KITTI Evaluation
+
+Compile `evaluate_object.cpp` under `$MSCNN_ROOT/examples/kitti_result/eval/` by yourself. Use `writeDetForEval.m` under `$MSCNN_ROOT/examples/kitti_result/` to transform the detection results into KITTI data format and evaluate the detection performance. Remember to change the corresponding directories in the evaluation script. 
+
 ### Disclaimer
 
 1. This implementation is developed on an old version of Caffe. Some new layers of current Caffe may not be supported in this implementation. But some layers (e.g. "batch_norm", "scale", "bias") are merged into this repository, such that ResNet is supported. 
