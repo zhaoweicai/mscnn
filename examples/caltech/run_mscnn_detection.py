@@ -8,7 +8,6 @@ import numpy as np
 import json
 from os import listdir
 from os.path import isfile, join
-from nms.gpu_nms import gpu_nms
 import sys
 import glob
 import cv2
@@ -18,10 +17,11 @@ import time
 from scipy.misc import imread
 
 # set caffe root and lib   
-caffe_root = '~/mscaffe/'
+caffe_root = '/home/ls/mscnn/'
 sys.path.insert(0, caffe_root + "install/python")
 sys.path.insert(0, caffe_root + "lib")
 import caffe
+from nms.gpu_nms import gpu_nms
 
 CALTECH_DATA_PATH = "/root/caltech/data/"
 IMG_PATH = os.path.join(CALTECH_DATA_PATH + "images")
@@ -61,10 +61,10 @@ def parse_args():
                         default=0, type=int)
     parser.add_argument('--net', dest='prototxt',
                         help='prototxt file defining the network',
-                        default='examples/caltech/mscnn-7s-720-pretrained/mscnn_deploy.prototxt', type=str)
+                        default='/home/ls/mscnn/examples/caltech/mscnn-7s-720-pretrained/mscnn_deploy.prototxt', type=str)
     parser.add_argument('--weights', dest='caffemodel',
                         help='model to test',
-                        default='examples/caltech/mscnn-7s-720-pretrained/mscnn_caltech_train_2nd_iter_20000.caffemodel'\
+                        default='/home/ls/mscnn/examples/caltech/mscnn-7s-720-pretrained/mscnn_caltech_train_2nd_iter_20000.caffemodel'\
                         , type=str)
 
     parser.add_argument('--do_bb_norm', dest='do_bb_norm',help="Whether to denormalize the box with std or means.\
@@ -298,7 +298,7 @@ def video_prediction(net, video_name):
     vidcap = cv2.VideoCapture(video_name)
     success,im = vidcap.read()
     while success:
-        confidence, boxes = im_dect(net, im)
+        confidence, boxes = im_detect(net, im)
         print confidence
         print boxes
         success,im = vidcap.read()
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     print("MC-CNN model loaded")
     # Detect the video
-    video_prediction(net,video_name)
+    video_prediction(net,args.video_name)
 
 
     # Detect the caltech dataset
