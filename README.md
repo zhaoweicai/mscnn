@@ -19,9 +19,13 @@ If you use our code/model/data, please cite our paper:
       Year  = {2016}
     }
 
+### Updates
+
+This repository is merged to the latest Caffe. There is very minor numerical difference from the old version. By using the latest vresions of Caffe, CUDA and cuDNN, the speeds could be doubled. If you want to use the old version of code, you can download it from [MSCNN-V1.0](http://www.svcl.ucsd.edu/projects/mscnn/mscnn_v1.0.zip). 
+
 ### Requirements
 
-1. cuDNN is required to avoid the issue of out-of-memory and have the same running speed described in our paper. For now, only CUDA 7.5 with cuDNN v3 is tested. 
+1. cuDNN is required to avoid the issue of out-of-memory and have the same running speed described in our paper. For now, CUDA 8.0 with cuDNN v5 is tested. The other versions should be working.
 
 2. If you want to use our MATLAB scripts to run the detection demo, caffe MATLAB wrapper is required. Please build matcaffe before running the detection demo. 
 
@@ -89,16 +93,14 @@ Compile `evaluate_object.cpp` under `$MSCNN_ROOT/examples/kitti_result/eval/` by
 
 ### Disclaimer
 
-1. This implementation is developed on an old version of Caffe. Some new layers of current Caffe may not be supported in this implementation. But some layers (e.g. "batch_norm", "scale", "bias") are merged into this repository, such that ResNet is supported. 
-
-2. The CPU version is not fully tested. The GPU version is strongly recommended.
+1. The CPU version is not fully tested. The GPU version is strongly recommended.
  
-3. Since some changes have been made after ECCV submission, you may not have exactly the same results in the paper by training your own models. But you should have equivelant performance. 
+2. Since some changes have been made after ECCV submission, you may not have exactly the same results in the paper by training your own models. But you should have equivelant performance. 
 
-4. Since the numbers of training samples vary vastly for different classes, the model robustness varies too (car>ped>cyc).
+3. Since the numbers of training samples vary vastly for different classes, the model robustness varies too (car>ped>cyc).
 
-5. Although the final results we submitted were from model `mscnn-8s-768-trainval`, our later experiments have shown that `mscnn-7s-576-2x-trainval` can achieve even better performance for car. With this model, detection can run 4fps. For ped/cyc however, the performance decreases due to the much less training instances.  
+4. Although the final results we submitted were from model `mscnn-8s-768-trainval`, our later experiments have shown that `mscnn-7s-576-2x-trainval` can achieve even better performance for car, and 2x faster speed. For ped/cyc however, the performance decreases due to the much less training instances.  
 
-6. If the training does not converge or the performance is very bad, try some other random seeds. You should obtain fair performance after a few tries. Due to the randomness, you cann't fully reproduce the same models, but the performance should be close.
+5. If the training does not converge or the performance is very bad, try some other random seeds. You should obtain fair performance after a few tries. Due to the randomness, you cann't fully reproduce the same models, but the performance should be close.
 
 If you encounter any issue when using our code or model, please let me know.
