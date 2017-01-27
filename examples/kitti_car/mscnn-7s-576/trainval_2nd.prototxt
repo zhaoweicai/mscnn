@@ -413,8 +413,8 @@ layer {
   bottom: "label_1_5x5"
   top: "loss_1_5x5"
   name: "detection_loss_1_5x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -479,8 +479,8 @@ layer {
   bottom: "label_1_7x7"
   top: "loss_1_7x7"
   name: "detection_loss_1_7x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -607,8 +607,8 @@ layer {
   bottom: "label_2_5x5"
   top: "loss_2_5x5"
   name: "detection_loss_2_5x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -672,8 +672,8 @@ layer {
   bottom: "label_2_7x7"
   top: "loss_2_7x7"
   name: "detection_loss_2_7x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -781,8 +781,8 @@ layer {
   bottom: "label_3_5x5"
   top: "loss_3_5x5"
   name: "detection_loss_3_5x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -846,8 +846,8 @@ layer {
   bottom: "label_3_7x7"
   top: "loss_3_7x7"
   name: "detection_loss_3_7x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -922,8 +922,8 @@ layer {
   bottom: "label_4_5x5"
   top: "loss_4_5x5"
   name: "detection_loss_4_5x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 5
     coord_num: 4
     lambda: 1
@@ -1031,6 +1031,8 @@ layer {
     bg_thr_lw: 0.1
     img_width: 768
     img_height: 576
+  }
+  bbox_reg_param {
     bbox_mean: 0 bbox_mean: 0 bbox_mean: 0 bbox_mean: 0
     bbox_std: 0.1 bbox_std: 0.1 bbox_std: 0.2 bbox_std: 0.2
   }
@@ -1061,6 +1063,8 @@ layer {
     bg_thr_lw: 0.1
     img_width: 768
     img_height: 576
+  }
+  bbox_reg_param {
     bbox_mean: 0 bbox_mean: 0 bbox_mean: 0 bbox_mean: 0
     bbox_std: 0.1 bbox_std: 0.1 bbox_std: 0.2 bbox_std: 0.2
   }
@@ -1252,7 +1256,7 @@ layer {
   bottom: "match_gt_boxes"
   top: "bbox_iou"
   top: "bbox_iou_pre"
-  bbox_accuracy_param {
+  bbox_reg_param {
     bbox_mean: 0 bbox_mean: 0 bbox_mean: 0 bbox_mean: 0
     bbox_std: 0.1 bbox_std: 0.1 bbox_std: 0.2 bbox_std: 0.2
   }

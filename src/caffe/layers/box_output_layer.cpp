@@ -10,13 +10,8 @@
 #include <cfloat>
 #include <vector>
 
-#include "caffe/layer.hpp"
-#include "caffe/layer_factory.hpp"
-#include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
-#include "caffe/vision_layers.hpp"
-
-#include "caffe/common.hpp"
+#include "caffe/layers/box_output_layer.hpp"
 
 namespace caffe {
     
@@ -93,6 +88,22 @@ void BoxOutputLayer<Dtype>::Forward_cpu(
     field_hs.push_back(this->layer_param_.box_output_param().field_h(i));
     downsample_rates.push_back(this->layer_param_.box_output_param().downsample_rate(i));
   }
+  
+  // bbox mean and std
+  bool do_bbox_norm = false;
+  vector<float> bbox_means, bbox_stds;
+  if (this->layer_param_.bbox_reg_param().bbox_mean_size() > 0
+      && this->layer_param_.bbox_reg_param().bbox_std_size() > 0) {
+    do_bbox_norm = true;
+    int num_bbox_means = this->layer_param_.bbox_reg_param().bbox_mean_size();
+    int num_bbox_stds = this->layer_param_.bbox_reg_param().bbox_std_size();
+    CHECK_EQ(num_bbox_means,4); CHECK_EQ(num_bbox_stds,4);
+    for (int i = 0; i < 4; i++) {
+      bbox_means.push_back(this->layer_param_.bbox_reg_param().bbox_mean(i));
+      bbox_stds.push_back(this->layer_param_.bbox_reg_param().bbox_std(i));
+    }
+  }
+  
   for (int i = 0; i < num; i++) {
     vector<vector<Dtype> > boxes;
     std::vector<std::pair<Dtype, int> > score_idx_vector;
@@ -122,6 +133,15 @@ void BoxOutputLayer<Dtype>::Forward_cpu(
           bby = bottom_data[coord_idx+spatial_dim];
           bbw = bottom_data[coord_idx+2*spatial_dim];
           bbh = bottom_data[coord_idx+3*spatial_dim];
+          
+          // bbox de-normalization
+          if (do_bbox_norm) {
+            bbx *= bbox_stds[0]; bby *= bbox_stds[1];
+            bbw *= bbox_stds[2]; bbh *= bbox_stds[3];
+            bbx += bbox_means[0]; bby += bbox_means[1];
+            bbw += bbox_means[2]; bbh += bbox_means[3];
+          }
+          
           bbx = std::max(min_xyr,bbx); bbx = std::min(max_xyr,bbx); 
           bby = std::max(min_xyr,bby); bby = std::min(max_xyr,bby);
           bbx = bbx*field_ws[j] + (w+Dtype(0.5))*downsample_rates[j];

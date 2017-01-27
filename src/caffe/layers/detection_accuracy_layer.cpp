@@ -10,11 +10,8 @@
 #include <cfloat>
 #include <vector>
 
-#include "caffe/layer.hpp"
-#include "caffe/layer_factory.hpp"
-#include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
-#include "caffe/vision_layers.hpp"
+#include "caffe/layers/detection_accuracy_layer.hpp"
 
 namespace caffe {
     
@@ -70,7 +67,7 @@ void DetectionAccuracyLayer<Dtype>::Forward_cpu(
   float field_whr = detect_acc_param.field_whr();
   float field_xyr = detect_acc_param.field_xyr();
   float bg_threshold = detect_acc_param.bg_threshold();
-
+  
   // The accuracy forward pass 
   Dtype accuracy = 0, fore_accuracy = 0;
   int acc_count = 0, fore_count = 0;
@@ -140,7 +137,7 @@ void DetectionAccuracyLayer<Dtype>::Forward_cpu(
         ty = bottom_data[coord_idx+spatial_dim];
         tw = bottom_data[coord_idx+2*spatial_dim];
         th = bottom_data[coord_idx+3*spatial_dim];
-        
+                
         tx = std::max(min_xyr,tx); tx = std::min(max_xyr,tx); 
         ty = std::max(min_xyr,ty); ty = std::min(max_xyr,ty);
         tx = tx*field_w_ + (w+Dtype(0.5))*downsample_rate_;

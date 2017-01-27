@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "caffe/data_layers.hpp"
-#include "caffe/proto/caffe.pb.h"
+#include "caffe/data_transformer.hpp"
+#include "caffe/layers/data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
 
 namespace caffe {
@@ -46,7 +46,9 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     vector<int> label_shape(1, batch_size);
     top[1]->Reshape(label_shape);
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-      this->prefetch_[i].labels_[0]->Reshape(label_shape);
+      shared_ptr<Blob<Dtype> > label_blob_pointer(new Blob<Dtype>());
+      label_blob_pointer->Reshape(label_shape);
+      this->prefetch_[i].labels_.push_back(label_blob_pointer);
     }
   }
 }
@@ -77,6 +79,7 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   Dtype* top_label = NULL;  // suppress warnings about uninitialized variables
 
   if (this->output_labels_) {
+    CHECK_EQ(batch->labels_.size(),1);
     top_label = batch->labels_[0]->mutable_cpu_data();
   }
   for (int item_id = 0; item_id < batch_size; ++item_id) {

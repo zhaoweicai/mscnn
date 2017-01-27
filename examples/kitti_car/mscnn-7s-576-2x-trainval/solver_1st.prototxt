@@ -12,4 +12,4 @@ weight_decay: 0.0005
 snapshot: 15000
 snapshot_prefix: "mscnn_kitti_trainval_1st"
 solver_mode: GPU
-random_seed: 1706
+random_seed: 1704

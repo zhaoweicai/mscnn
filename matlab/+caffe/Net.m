@@ -93,15 +93,14 @@ classdef Net < handle
         'input data cell length must match input blob number');
       % copy data to input blobs
       for n = 1:length(self.inputs)
-        %zhaowei, for input reshape
         input_shape = size(input_data{n});
         if (length(input_shape)==3), input_shape = [input_shape 1]; end
         if (~all(self.blobs(self.inputs{n}).shape==input_shape))
           self.blobs(self.inputs{n}).reshape(input_shape);
-          self.reshape();
         end
         self.blobs(self.inputs{n}).set_data(input_data{n});
       end
+      self.reshape();
       self.forward_prefilled();
       % retrieve data from output blobs
       res = cell(length(self.outputs), 1);

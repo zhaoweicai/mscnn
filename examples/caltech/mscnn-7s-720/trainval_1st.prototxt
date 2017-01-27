@@ -379,8 +379,8 @@ layer {
   bottom: "label_1_3x5"
   top: "loss_1_3x5"
   name: "detection_loss_1_3x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -447,8 +447,8 @@ layer {
   bottom: "label_1_5x7"
   top: "loss_1_5x7"
   name: "detection_loss_1_5x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -577,8 +577,8 @@ layer {
   bottom: "label_2_3x5"
   top: "loss_2_3x5"
   name: "detection_loss_2_3x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -644,8 +644,8 @@ layer {
   bottom: "label_2_5x7"
   top: "loss_2_5x7"
   name: "detection_loss_2_5x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -755,8 +755,8 @@ layer {
   bottom: "label_3_3x5"
   top: "loss_3_3x5"
   name: "detection_loss_3_3x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -822,8 +822,8 @@ layer {
   bottom: "label_3_5x7"
   top: "loss_3_5x7"
   name: "detection_loss_3_5x7"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5
@@ -900,8 +900,8 @@ layer {
   bottom: "label_4_3x5"
   top: "loss_4_3x5"
   name: "detection_loss_4_3x5"
-  type: "Detection"
-  detection_param {
+  type: "DetectionLoss"
+  detection_loss_param {
     cls_num: 2
     coord_num: 4
     lambda: 0.5

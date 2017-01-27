@@ -12,7 +12,10 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-#include "caffe/data_layers.hpp"
+#include "caffe/data_transformer.hpp"
+#include "caffe/internal_thread.hpp"
+#include "caffe/layers/base_data_layer.hpp"
+#include "caffe/layers/window_data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
@@ -181,7 +184,9 @@ void WindowDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   vector<int> label_shape(1, batch_size);
   top[1]->Reshape(label_shape);
   for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-    this->prefetch_[i].labels_[0]->Reshape(label_shape);
+    shared_ptr<Blob<Dtype> > label_blob_pointer(new Blob<Dtype>());
+    label_blob_pointer->Reshape(label_shape);
+    this->prefetch_[i].labels_.push_back(label_blob_pointer);
   }
 
   // data mean
@@ -231,6 +236,7 @@ void WindowDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   double trans_time = 0;
   CPUTimer timer;
   Dtype* top_data = batch->data_.mutable_cpu_data();
+  CHECK_EQ(batch->labels_.size(),1);
   Dtype* top_label = batch->labels_[0]->mutable_cpu_data();
   const Dtype scale = this->layer_param_.window_data_param().scale();
   const int batch_size = this->layer_param_.window_data_param().batch_size();
@@ -262,6 +268,9 @@ void WindowDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   const int num_samples[2] = { batch_size - num_fg, num_fg };
 
   int item_id = 0;
+  CHECK_GT(fg_windows_.size(), 0);
+  CHECK_GT(bg_windows_.size(), 0);
+
   // sample from bg set then fg set
   for (int is_fg = 0; is_fg < 2; ++is_fg) {
     for (int dummy = 0; dummy < num_samples[is_fg]; ++dummy) {

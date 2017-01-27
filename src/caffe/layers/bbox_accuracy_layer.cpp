@@ -6,12 +6,12 @@
 // Please email me if you find bugs, or have suggestions or questions!
 // ------------------------------------------------------------------
 
-#include <functional>
+#include <algorithm>
 #include <utility>
 #include <vector>
 
-#include "caffe/loss_layers.hpp"
 #include "caffe/util/math_functions.hpp"
+#include "caffe/layers/bbox_accuracy_layer.hpp"
 
 namespace caffe {
 
@@ -52,21 +52,16 @@ void BboxAccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   
   // bbox mean and std
   bool do_bbox_norm = false;
-  if (this->layer_param_.bbox_accuracy_param().bbox_mean_size() > 0
-      && this->layer_param_.bbox_accuracy_param().bbox_std_size() > 0) {
-    do_bbox_norm = true;
-  }
   vector<float> bbox_means, bbox_stds;
-  if (do_bbox_norm) {
-    int num_bbox_means = this->layer_param_.bbox_accuracy_param().bbox_mean_size();
-    int num_bbox_stds = this->layer_param_.bbox_accuracy_param().bbox_std_size();
-    CHECK_EQ(num_bbox_means,4);
-    CHECK_EQ(num_bbox_stds,4);
-    for (int i = 0; i < num_bbox_means; i++) {
-      bbox_means.push_back(this->layer_param_.bbox_accuracy_param().bbox_mean(i));
-    }
-    for (int i = 0; i < num_bbox_stds; i++) {
-      bbox_stds.push_back(this->layer_param_.bbox_accuracy_param().bbox_std(i));
+  if (this->layer_param_.bbox_reg_param().bbox_mean_size() > 0
+      && this->layer_param_.bbox_reg_param().bbox_std_size() > 0) {
+    do_bbox_norm = true;
+    int num_bbox_means = this->layer_param_.bbox_reg_param().bbox_mean_size();
+    int num_bbox_stds = this->layer_param_.bbox_reg_param().bbox_std_size();
+    CHECK_EQ(num_bbox_means,4); CHECK_EQ(num_bbox_stds,4);
+    for (int i = 0; i < 4; i++) {
+      bbox_means.push_back(this->layer_param_.bbox_reg_param().bbox_mean(i));
+      bbox_stds.push_back(this->layer_param_.bbox_reg_param().bbox_std(i));
     }
   }
   

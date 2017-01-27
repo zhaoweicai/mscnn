@@ -7,9 +7,8 @@
 
 #include <cfloat>
 
-#include "caffe/layer.hpp"
 #include "caffe/util/math_functions.hpp"
-#include "caffe/vision_layers.hpp"
+#include "caffe/layers/roi_pooling_layer.hpp"
 
 using std::max;
 using std::min;
@@ -40,11 +39,11 @@ __global__ void ROIPoolForward(const int nthreads, const Dtype* bottom_data,
     int roi_end_w = round((bottom_rois[3]+pad_w) * spatial_scale);
     int roi_end_h = round((bottom_rois[4]+pad_h) * spatial_scale);
     // clipping
-    roi_start_w = max(roi_start_w,0); roi_start_h = max(roi_start_h,0);
+    /*roi_start_w = max(roi_start_w,0); roi_start_h = max(roi_start_h,0);
     int img_width = round(width / spatial_scale);
     int img_height = round(height / spatial_scale);
     roi_end_w = min(img_width-1,roi_end_w);
-    roi_end_h = min(img_height-1,roi_end_h);
+    roi_end_h = min(img_height-1,roi_end_h);*/
 
     // Force malformed ROIs to be 1x1
     int roi_width = max(roi_end_w - roi_start_w + 1, 1);
