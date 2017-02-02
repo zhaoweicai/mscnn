@@ -74,7 +74,7 @@ def parse_args():
                 default=720 , type=int)
     parser.add_argument('--detection', dest='dt_name',  help='model to test', default='detection_1', type=str)
     parser.add_argument('--video_file', dest='video_name',  help='video to test', default='', type=str)
-
+    parser.add_argument('--threshold', dest='threshold', help='threshold for boxes', default=0.9, type=float)
     
     if len(sys.argv) == 1:
         parser.print_help()
@@ -294,13 +294,39 @@ def write_caltech_results_file(net):
         for v_num, file_list in target_frames[set_num].items():
             current_frames += detection_to_file(target_path, v_num, file_list, detect, total_frames, current_frames)
 
-def video_prediction(net, video_name):
+def vis_detections(im, class_name, boxes, confidence, thresh):
+    """Visual debugging of detections."""
+    import matplotlib.pyplot as plt
+    im_show = im
+    if sdha_cfg.channels == 3:
+        im = im[:, :, (2, 1, 0)]
+        im_show = im
+    elif sdha_cfg.channels == 4:
+        b,g,r,mhi = cv2.split(im)
+        im_show = cv2.merge([r,g,b])
+    else:
+        pass
+    for i in xrange(np.minimum(10, dets.shape[0])):
+        bbox = boxes[i]
+        score = confidence[i]
+        if score > thresh:
+            plt.cla()
+            plt.imshow(im_show)
+            plt.gca().add_patch(
+                plt.Rectangle((bbox[0], bbox[1]),
+                              bbox[2] - bbox[0],
+                              bbox[3] - bbox[1], fill=False,
+                              edgecolor='g', linewidth=3)
+                )
+            plt.title('{}  {:.3f}'.format(class_name, score))
+            plt.show()
+
+def video_prediction(net, video_name, thresh):
     vidcap = cv2.VideoCapture(video_name)
     success,im = vidcap.read()
     while success:
         confidence, boxes = im_detect(net, im)
-        print confidence
-        print boxes
+        vis_detections(im, 'pedestrain', boxes, confidence, thresh)
         success,im = vidcap.read()
                 
 if __name__ == "__main__":
@@ -311,14 +337,14 @@ if __name__ == "__main__":
     caffe.set_mode_gpu()
     caffe.set_device(args.gpu_id)
     GPU_ID = args.gpu_id
-    
+    threshold = args.threshold
     DETECTION_NAME = args.dt_name
     
     print("Loading Network")
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     print("MC-CNN model loaded")
     # Detect the video
-    video_prediction(net,args.video_name)
+    video_prediction(net,args.video_name,threshold)
 
 
     # Detect the caltech dataset
