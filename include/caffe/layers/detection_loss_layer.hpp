@@ -80,6 +80,8 @@ class DetectionLossLayer : public LossLayer<Dtype> {
   bool objectness_;
   bool iou_weighted_;
   bool pos_neg_weighted_;
+  Blob<Dtype> bbox_mean_;
+  Blob<Dtype> bbox_std_;
 };
 
 }  // namespace caffe
