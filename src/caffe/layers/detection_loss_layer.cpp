@@ -70,6 +70,23 @@ void DetectionLossLayer<Dtype>::LayerSetUp(
   if (has_ignore_label_) {
     ignore_label_ = this->layer_param_.loss_param().ignore_label();
   }
+  
+  // bbox mean and std
+  bbox_mean_.Reshape(4,1,1,1); bbox_std_.Reshape(4,1,1,1);
+  if (this->layer_param_.bbox_reg_param().bbox_mean_size() > 0
+      && this->layer_param_.bbox_reg_param().bbox_std_size() > 0) {
+    int num_means = this->layer_param_.bbox_reg_param().bbox_mean_size();
+    int num_stds = this->layer_param_.bbox_reg_param().bbox_std_size();
+    CHECK_EQ(num_means,4); CHECK_EQ(num_stds,4);
+    for (int i = 0; i < 4; i++) {
+      bbox_mean_.mutable_cpu_data()[i] = this->layer_param_.bbox_reg_param().bbox_mean(i);
+      bbox_std_.mutable_cpu_data()[i] = this->layer_param_.bbox_reg_param().bbox_std(i);
+      CHECK_GT(bbox_std_.mutable_cpu_data()[i],0);
+    }
+  } else {
+    caffe_set(bbox_mean_.count(), Dtype(0), bbox_mean_.mutable_cpu_data());
+    caffe_set(bbox_std_.count(), Dtype(1), bbox_std_.mutable_cpu_data());
+  }
 }
 
 template <typename Dtype>
@@ -109,6 +126,10 @@ void DetectionLossLayer<Dtype>::Forward_cpu(
   int cls_dim = cls_bottom_.count() / num;
   int label_dim = bottom[1]->count() / num;
   CHECK((cls_num_+coord_num_)==channels) << "the channels dimensions don't fit" << std::endl;
+  
+  // bbox normalization
+  const Dtype* bbox_mean_data = bbox_mean_.cpu_data();
+  const Dtype* bbox_std_data = bbox_std_.cpu_data();
    
   CHECK_EQ(cls_bottom_.count(),num*cls_num_*spatial_dim); 
   Dtype* cls_bottom_data = cls_bottom_.mutable_cpu_data();
@@ -282,6 +303,15 @@ void DetectionLossLayer<Dtype>::Forward_cpu(
   caffe_set(coord_diff_.count(), Dtype(0), coord_diff_data);
   Dtype min_whr = log(Dtype(1)/field_whr_), max_whr = log(Dtype(field_whr_));
   Dtype min_xyr = Dtype(-1)/field_xyr_, max_xyr = Dtype(1)/field_xyr_;
+  // bbox normalization
+  Dtype xyr_mean = (bbox_mean_data[0]+bbox_mean_data[1])/2.0;
+  Dtype whr_mean = (bbox_mean_data[2]+bbox_mean_data[3])/2.0;
+  Dtype xyr_std = sqrt(bbox_std_data[0]*bbox_std_data[1]);
+  Dtype whr_std = sqrt(bbox_std_data[2]*bbox_std_data[3]);
+  min_xyr -= xyr_mean; max_xyr -= xyr_mean;
+  min_whr -= whr_mean; max_whr -= whr_mean;
+  min_xyr /= xyr_std; max_xyr /= xyr_std;
+  min_whr /= whr_std; max_whr /= whr_std;
 
   for (int i = 0; i < num; ++i) {
     for (int h = 0; h < label_height; ++h) {
@@ -296,6 +326,12 @@ void DetectionLossLayer<Dtype>::Forward_cpu(
         gy = (label[label_index+2*spatial_dim]-(h+Dtype(0.5))*downsample_rate_) / field_h_;
         gw = log(std::max(label[label_index+3*spatial_dim],Dtype(2)) / field_w_);
         gh = log(std::max(label[label_index+4*spatial_dim],Dtype(2)) / field_h_);
+        
+        // bbox normalization
+        gx -= bbox_mean_data[0]; gy -= bbox_mean_data[1];
+        gw -= bbox_mean_data[2]; gh -= bbox_mean_data[3];
+        gx /= bbox_std_data[0]; gy /= bbox_std_data[1];
+        gw /= bbox_std_data[2]; gh /= bbox_std_data[3];
        
         // euclidean gradient
         Dtype tx, ty, tw, th;

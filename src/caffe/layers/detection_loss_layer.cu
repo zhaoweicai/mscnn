@@ -47,11 +47,10 @@ template <typename Dtype>
 __global__ void DetectionBoxForwardGPU(const int nthreads,
           const Dtype* coord_data, const Dtype* label, Dtype* coord_diff, const int coord_dim, 
           const int label_dim, const int spatial_dim, const int dr, const int height, 
-          const int width, const int field_h, const int field_w, const float field_whr, 
-          const float field_xyr, const int coord_num, const bool has_ignore_label, 
+          const int width, const int field_h, const int field_w, const Dtype min_whr, 
+          const Dtype max_whr, const Dtype min_xyr, const Dtype max_xyr, const int coord_num, 
+          const Dtype* bbox_mean, const Dtype* bbox_std, const bool has_ignore_label, 
           const int ignore_label, Dtype* counts) {
-  const Dtype min_whr = log(Dtype(1)/field_whr), max_whr = log(Dtype(field_whr));
-  const Dtype min_xyr = Dtype(-1)/field_xyr, max_xyr = Dtype(1)/field_xyr;
   CUDA_KERNEL_LOOP(index, nthreads) {
     const int n = index / spatial_dim;
     const int s = index % spatial_dim;
@@ -66,6 +65,12 @@ __global__ void DetectionBoxForwardGPU(const int nthreads,
       gy = (label[label_index+2*spatial_dim]-(h+Dtype(0.5))*dr) / field_h;
       gw = log(max(label[label_index+3*spatial_dim],Dtype(2)) / field_w);
       gh = log(max(label[label_index+4*spatial_dim],Dtype(2)) / field_h);
+
+      // bbox normalization
+      gx -= bbox_mean[0]; gy -= bbox_mean[1];
+      gw -= bbox_mean[2]; gh -= bbox_mean[3];
+      gx /= bbox_std[0]; gy /= bbox_std[1];
+      gw /= bbox_std[2]; gh /= bbox_std[3];
 
       // euclidean gradient
       Dtype tx, ty, tw, th;
@@ -269,6 +274,18 @@ void DetectionLossLayer<Dtype>::Forward_gpu(
   caffe_gpu_asum(nthreads, cls_loss_data, &cls_loss);
 
   // the forward pass computes euclidean loss
+  Dtype min_whr = log(Dtype(1)/field_whr_), max_whr = log(Dtype(field_whr_));
+  Dtype min_xyr = Dtype(-1)/field_xyr_, max_xyr = Dtype(1)/field_xyr_;
+  // bbox normalization
+  Dtype xyr_mean = (bbox_mean_.cpu_data()[0]+bbox_mean_.cpu_data()[1])/2.0;
+  Dtype whr_mean = (bbox_mean_.cpu_data()[2]+bbox_mean_.cpu_data()[3])/2.0;
+  Dtype xyr_std = sqrt(bbox_std_.cpu_data()[0]*bbox_std_.cpu_data()[1]);
+  Dtype whr_std = sqrt(bbox_std_.cpu_data()[2]*bbox_std_.cpu_data()[3]);
+  min_xyr -= xyr_mean; max_xyr -= xyr_mean;
+  min_whr -= whr_mean; max_whr -= whr_mean;
+  min_xyr /= xyr_std; max_xyr /= xyr_std;
+  min_whr /= whr_std; max_whr /= whr_std;
+
   const int label_height = bottom[1]->height(), label_width = bottom[1]->width();
   Dtype* coord_diff_data = coord_diff_.mutable_gpu_data();
   caffe_gpu_set(coord_diff_.count(), Dtype(0), coord_diff_data);
@@ -276,8 +293,8 @@ void DetectionLossLayer<Dtype>::Forward_gpu(
   DetectionBoxForwardGPU<Dtype><<<CAFFE_GET_BLOCKS(nthreads),
       CAFFE_CUDA_NUM_THREADS>>>(nthreads, coord_bottom_data, label, coord_diff_data,
       coord_dim, label_dim, spatial_dim, downsample_rate_, label_height, label_width, 
-      field_h_, field_w_, field_whr_, field_xyr_, coord_num_, has_ignore_label_, 
-      ignore_label_, coord_counts);
+      field_h_, field_w_, min_whr, max_whr, min_xyr, max_xyr, coord_num_, bbox_mean_.gpu_data(), 
+      bbox_std_.gpu_data(), has_ignore_label_, ignore_label_, coord_counts);
 
   Dtype coord_loss;
   if (bb_smooth_) {

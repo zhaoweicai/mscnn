@@ -415,7 +415,7 @@ void ImageGtDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       }
 
       img_height = cv_img.rows, img_width = cv_img.cols;
-      CHECK_LE(template_width, img_width); CHECK_LE(template_height, img_height);
+      //CHECK_LE(template_width, img_width); CHECK_LE(template_height, img_height);
       int src_offset_x=0, src_offset_y=0, dst_offset_x=0, dst_offset_y=0;
       int copy_width = template_width, copy_height = template_height;
       float width_rescale_factor  = 1, height_rescale_factor = 1;
@@ -426,8 +426,16 @@ void ImageGtDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         sel_center_x = (windows[sel_id][ImageGtDataLayer<Dtype>::X1]+windows[sel_id][ImageGtDataLayer<Dtype>::X2])/2.0;
         sel_center_y = (windows[sel_id][ImageGtDataLayer<Dtype>::Y1]+windows[sel_id][ImageGtDataLayer<Dtype>::Y2])/2.0;
       } else {
-        sel_center_x = PrefetchRand() % (img_width-template_width+1) + template_width/2.0;
-        sel_center_y = PrefetchRand() % (img_height-template_height+1) + template_height/2.0;
+        if (img_width>=template_width) {
+          sel_center_x = PrefetchRand() % (img_width-template_width+1) + template_width/2.0;
+        } else {
+          sel_center_x = img_width/2.0;
+        }
+        if (img_height>=template_height) {
+          sel_center_y = PrefetchRand() % (img_height-template_height+1) + template_height/2.0;
+        } else {
+          sel_center_y = img_height/2.0;
+        }
       }
 
       // multiple scaling

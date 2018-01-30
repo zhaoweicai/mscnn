@@ -68,6 +68,21 @@ void DetectionAccuracyLayer<Dtype>::Forward_cpu(
   float field_xyr = detect_acc_param.field_xyr();
   float bg_threshold = detect_acc_param.bg_threshold();
   
+  // bbox mean and std
+  bool do_bbox_norm = false;
+  vector<float> bbox_means, bbox_stds;
+  if (this->layer_param_.bbox_reg_param().bbox_mean_size() > 0
+      && this->layer_param_.bbox_reg_param().bbox_std_size() > 0) {
+    do_bbox_norm = true;
+    int num_bbox_means = this->layer_param_.bbox_reg_param().bbox_mean_size();
+    int num_bbox_stds = this->layer_param_.bbox_reg_param().bbox_std_size();
+    CHECK_EQ(num_bbox_means,4); CHECK_EQ(num_bbox_stds,4);
+    for (int i = 0; i < 4; i++) {
+      bbox_means.push_back(this->layer_param_.bbox_reg_param().bbox_mean(i));
+      bbox_stds.push_back(this->layer_param_.bbox_reg_param().bbox_std(i));
+    }
+  }
+  
   // The accuracy forward pass 
   Dtype accuracy = 0, fore_accuracy = 0;
   int acc_count = 0, fore_count = 0;
@@ -137,6 +152,14 @@ void DetectionAccuracyLayer<Dtype>::Forward_cpu(
         ty = bottom_data[coord_idx+spatial_dim];
         tw = bottom_data[coord_idx+2*spatial_dim];
         th = bottom_data[coord_idx+3*spatial_dim];
+        
+        // bbox de-normalization
+        if (do_bbox_norm) {
+          tx *= bbox_stds[0]; ty *= bbox_stds[1];
+          tw *= bbox_stds[2]; th *= bbox_stds[3];
+          tx += bbox_means[0]; ty += bbox_means[1];
+          tw += bbox_means[2]; th += bbox_means[3];
+        }
                 
         tx = std::max(min_xyr,tx); tx = std::min(max_xyr,tx); 
         ty = std::max(min_xyr,ty); ty = std::min(max_xyr,ty);
