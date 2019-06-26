@@ -1,0 +1,17 @@
+net: "trainval_1st.prototxt"
+#test_iter: 250
+#test_interval: 2000
+base_lr: 0.00005
+lr_policy: "step"
+gamma: 0.1
+stepsize: 10000
+display: 50
+average_loss: 50
+max_iter: 10000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 10000
+snapshot_prefix: "mscnn_citypersons_trainval_1st"
+solver_mode: GPU
+#test_initialization: false
+random_seed: 1704
