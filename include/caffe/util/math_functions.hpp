@@ -12,9 +12,30 @@
 
 namespace caffe {
 
+struct BBox {
+  BBox() {
+    xmin = 0; ymin = 0; xmax = -1; ymax = -1;
+    label = -1; difficult = false; score = 0; size = 0; ignore = false;
+  }
+  float xmin;
+  float ymin;
+  float xmax;
+  float ymax;
+  int label;
+  bool difficult;
+  float score;
+  float size;
+  bool ignore;
+};
+
 template <typename Dtype>
 Dtype BoxIOU(const Dtype x1, const Dtype y1, const Dtype w1, const Dtype h1,
           const Dtype x2, const Dtype y2, const Dtype w2, const Dtype h2, const string mode);
+
+template <typename Dtype>
+void DecodeBBoxesWithPrior(const Dtype* bbox_data, const vector<BBox> prior_bboxes,  
+        const int bbox_dim, const Dtype* means, const Dtype* stds, 
+        Dtype* pred_data);
 
 // Caffe gemm provides a simpler interface to the gemm functions, with the
 // limitation that the data has to be contiguous in memory.

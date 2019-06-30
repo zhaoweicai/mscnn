@@ -23,6 +23,12 @@ void ProposalTargetLayer<Dtype>::LayerSetUp(
   cls_num_ = proposal_target_param.cls_num();
   batch_size_ = this->layer_param_.proposal_target_param().batch_size();
   has_sample_weight_ = (top.size()>=7);
+  bbox_cls_aware_ = this->layer_param_.bbox_reg_param().cls_aware();
+  if (bbox_cls_aware_) {
+    bbox_target_dim_ = cls_num_ * 4;	  
+  } else {
+    bbox_target_dim_ = 8;
+  }
   
   const unsigned int shuffle_rng_seed = caffe_rng_rand();
   shuffle_rng_.reset(new Caffe::RNG(shuffle_rng_seed));
@@ -31,21 +37,28 @@ void ProposalTargetLayer<Dtype>::LayerSetUp(
 template <typename Dtype>
 void ProposalTargetLayer<Dtype>::Reshape(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  int actual_batch_size = batch_size_;
+  if (batch_size_ == -1) {
+    actual_batch_size = bottom[0]->num();
+    actual_batch_size = std::max(actual_batch_size,1);
+  } else {
+    CHECK_GT(batch_size_,0);
+  }
   //sampled rois (img_id, x1, y1, x2, y2)
-  top[0]->Reshape(batch_size_, 5, 1, 1);
+  top[0]->Reshape(actual_batch_size, 5, 1, 1);
   //labels
-  top[1]->Reshape(batch_size_, 1, 1, 1);
+  top[1]->Reshape(actual_batch_size, 1, 1, 1);
   //bbox targets
-  top[2]->Reshape(batch_size_, cls_num_ * 4, 1, 1);
+  top[2]->Reshape(actual_batch_size, bbox_target_dim_, 1, 1);
   //bbox inside weights
-  top[3]->Reshape(batch_size_, cls_num_ * 4, 1, 1);
+  top[3]->Reshape(actual_batch_size, bbox_target_dim_, 1, 1);
   //bbox outside weights
-  top[4]->Reshape(batch_size_, cls_num_ * 4, 1, 1);
+  top[4]->Reshape(actual_batch_size, bbox_target_dim_, 1, 1);
   //mathced gt boxes for bbox evaluation (label, x1, y1, x2, y2, overlap)
-  top[5]->Reshape(batch_size_, 6, 1, 1);
+  top[5]->Reshape(actual_batch_size, 6, 1, 1);
   //sample weights
   if (has_sample_weight_) {
-    top[6]->Reshape(batch_size_, 1, 1, 1);
+    top[6]->Reshape(actual_batch_size, 1, 1, 1);
   }
   CHECK_EQ(bottom[0]->channels(),5);
   CHECK_EQ(bottom[1]->channels(),7);
@@ -56,12 +69,11 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   //parameters
   const float fg_fraction = this->layer_param_.proposal_target_param().fg_fraction();
-  int fg_rois_per_batch = round(fg_fraction*batch_size_);
   const int num_img_per_batch = this->layer_param_.proposal_target_param().num_img_per_batch();
   const float fg_thr = this->layer_param_.proposal_target_param().fg_thr();
   const float bg_thr_hg = this->layer_param_.proposal_target_param().bg_thr_hg();
   const float bg_thr_lw = this->layer_param_.proposal_target_param().bg_thr_lw();
-  CHECK_GT(fg_thr,bg_thr_hg);
+  CHECK_GE(fg_thr,bg_thr_hg);
   const int img_width = this->layer_param_.proposal_target_param().img_width();
   const int img_height = this->layer_param_.proposal_target_param().img_height();
   const bool iou_weighted = this->layer_param_.proposal_target_param().iou_weighted();
@@ -151,6 +163,18 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
       discard_bg_inds_gtids.push_back(std::make_pair(i,max_gt_inds[i]));
     }
   }
+  
+  // decide the sampling batch size
+  int actual_batch_size, fg_rois_per_batch;
+  if (batch_size_ == -1) {
+    // sampling all positive and negative rois
+    actual_batch_size = fg_inds_gtids.size()+bg_inds_gtids.size();
+    fg_rois_per_batch = fg_inds_gtids.size();
+  } else {
+    actual_batch_size = batch_size_;
+    fg_rois_per_batch = round(fg_fraction*batch_size_);
+  }
+  
   int fg_rois_this_batch = std::min(fg_rois_per_batch,int(fg_inds_gtids.size()));
   if (fg_inds_gtids.size() > fg_rois_this_batch) {
     //random sampling
@@ -158,16 +182,16 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
     shuffle(fg_inds_gtids.begin(), fg_inds_gtids.end(), shuffle_rng);
     fg_inds_gtids.resize(fg_rois_this_batch);
   }
-  int bg_rois_this_batch = batch_size_-fg_rois_this_batch;
+  int bg_rois_this_batch = actual_batch_size-fg_rois_this_batch;
   bg_rois_this_batch = std::min(bg_rois_this_batch,int(bg_inds_gtids.size()));
-  if (bg_inds_gtids.size() > (batch_size_-fg_rois_this_batch)) {
+  if (bg_inds_gtids.size() > (actual_batch_size-fg_rois_this_batch)) {
     //random sampling
     caffe::rng_t* shuffle_rng = static_cast<caffe::rng_t*>(shuffle_rng_->generator());
     shuffle(bg_inds_gtids.begin(), bg_inds_gtids.end(), shuffle_rng);
     bg_inds_gtids.resize(bg_rois_this_batch);
   } else if (discard_bg_inds_gtids.size() > 0) {
     //pick up some samples from discarded pool
-    int num_refind_bg_rois = batch_size_-fg_rois_this_batch-bg_inds_gtids.size();
+    int num_refind_bg_rois = actual_batch_size-fg_rois_this_batch-bg_inds_gtids.size();
     num_refind_bg_rois = std::min(num_refind_bg_rois,int(discard_bg_inds_gtids.size()));
     for (int i = 0; i < num_refind_bg_rois; i++) {
       bg_inds_gtids.push_back(discard_bg_inds_gtids[i]);
@@ -176,8 +200,8 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
   }
   
   int num_keep_rois = fg_rois_this_batch+bg_rois_this_batch;
-  if (num_keep_rois < batch_size_) {
-    int num_backup = batch_size_-num_keep_rois;
+  if (num_keep_rois < actual_batch_size) {
+    int num_backup = actual_batch_size-num_keep_rois;
     LOG(INFO) << "sampled rois: " << num_keep_rois << ", random rois: "<<num_backup;
     //collect num_backup random bg boxes
     vector<vector<Dtype> > backup_boxes;
@@ -208,7 +232,7 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
     }
     num_keep_rois += num_backup;
   }
-  CHECK_EQ(num_keep_rois,batch_size_);
+  CHECK_EQ(num_keep_rois,actual_batch_size);
   
   //append index and labels
   vector<Dtype> labels; 
@@ -274,16 +298,15 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
   top[1]->Reshape(num_keep_rois, 1, 1, 1);
   Dtype* labels_data = top[1]->mutable_cpu_data();
   // targets
-  const int target_dim = 4*cls_num_;
-  top[2]->Reshape(num_keep_rois, target_dim, 1, 1);
+  top[2]->Reshape(num_keep_rois, bbox_target_dim_, 1, 1);
   Dtype* targets_data = top[2]->mutable_cpu_data();
   caffe_set(top[2]->count(), Dtype(0), targets_data);  
   // box inside weights for box regression
-  top[3]->Reshape(num_keep_rois, target_dim, 1, 1);
+  top[3]->Reshape(num_keep_rois, bbox_target_dim_, 1, 1);
   Dtype* box_inside_weights_data = top[3]->mutable_cpu_data();
   caffe_set(top[3]->count(), Dtype(0), box_inside_weights_data);  
   // box outside weights for box regression
-  top[4]->Reshape(num_keep_rois, target_dim, 1, 1);
+  top[4]->Reshape(num_keep_rois, bbox_target_dim_, 1, 1);
   Dtype* box_outside_weights_data = top[4]->mutable_cpu_data();
   caffe_set(top[4]->count(), Dtype(0), box_outside_weights_data);  
   // matched gt boxes
@@ -326,7 +349,10 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
     rois_data[i*rois_dim+3] = rois_boxes[rois_id][1]+rois_boxes[rois_id][3]-1;
     rois_data[i*rois_dim+4] = rois_boxes[rois_id][2]+rois_boxes[rois_id][4]-1;
     if (cls_id == 0) continue;
-    int start_id = i*target_dim+cls_id*4;
+    if (!bbox_cls_aware_) {
+      cls_id = std::min(1,cls_id);
+    } 
+    int start_id = i*bbox_target_dim_+cls_id*4;
     for (int j = 0; j < 4; j++) {
       targets_data[start_id+j] = bbox_targets[i][j];
       box_inside_weights_data[start_id+j] = 1; //every dim has the same weight

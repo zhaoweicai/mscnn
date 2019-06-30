@@ -306,7 +306,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 155 (last added: bbox_reg_param)
+// LayerParameter next available layer-specific ID: 156 (last added: decode_bbox_param)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -411,6 +411,7 @@ message LayerParameter {
   optional ProposalTargetParameter proposal_target_param = 152;
   optional ImageGtDataParameter image_gt_data_param = 153;
   optional BBoxRegParameter bbox_reg_param = 154;
+  optional DecodeBBoxParameter decode_bbox_param = 155;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1330,7 +1331,7 @@ message BoxOutputParameter {
 // Message that stores parameters used by ProposalTargetLayer
 message ProposalTargetParameter {
   optional uint32 cls_num = 1;
-  optional uint32 batch_size = 2 [default = 128];
+  optional int32 batch_size = 2 [default = 128];
   optional float fg_fraction = 3 [default = 0.25];
   optional uint32 num_img_per_batch = 4 [default = 4];
   optional float fg_thr = 5 [default = 0.5];
@@ -1341,10 +1342,16 @@ message ProposalTargetParameter {
   optional bool iou_weighted = 10 [default = false];
 }
 
-// Message that stores parameters used by IOULossLayer
+// Message that stores parameters used by bbox regression
 message BBoxRegParameter {
   repeated float bbox_mean = 1;
   repeated float bbox_std = 2;
+  optional bool cls_aware = 3 [default = true];
+}
+
+// Message that stores parameters used by DecodeBBoxLayer
+message DecodeBBoxParameter {
+  optional float gt_iou_thr = 1 [default = 0.95];
 }
 
 // DEPRECATED: use LayerParameter.

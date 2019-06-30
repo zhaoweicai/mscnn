@@ -42,6 +42,48 @@ template
 double BoxIOU(const double x1, const double y1, const double w1, const double h1,
           const double x2, const double y2, const double w2, const double h2, const string mode);
 
+template <typename Dtype>
+void DecodeBBoxesWithPrior(const Dtype* bbox_data, const vector<BBox> prior_bboxes,  
+        const int bbox_dim, const Dtype* means, const Dtype* stds, 
+        Dtype* pred_data) {
+  const int num = prior_bboxes.size();
+  const int cls_num = bbox_dim/4;
+  for (int i = 0; i < num; i++) {
+    Dtype pw, ph, cx, cy;
+    pw = prior_bboxes[i].xmax-prior_bboxes[i].xmin+1; 
+    ph = prior_bboxes[i].ymax-prior_bboxes[i].ymin+1;
+    cx = 0.5*(prior_bboxes[i].xmax+prior_bboxes[i].xmin); 
+    cy = 0.5*(prior_bboxes[i].ymax+prior_bboxes[i].ymin);
+    for (int c = 0; c < cls_num; c++) {
+      Dtype bx, by, bw, bh;
+      // bbox de-normalization
+      bx = bbox_data[i*bbox_dim+4*c]*stds[0]+means[0];
+      by = bbox_data[i*bbox_dim+4*c+1]*stds[1]+means[1];
+      bw = bbox_data[i*bbox_dim+4*c+2]*stds[2]+means[2];
+      bh = bbox_data[i*bbox_dim+4*c+3]*stds[3]+means[3];
+
+      Dtype tx, ty, tw, th;
+      tx = bx*pw+cx; ty = by*ph+cy;
+      tw = pw*exp(bw); th = ph*exp(bh);
+      tx -= (tw-1)/2; ty -= (th-1)/2;
+      pred_data[i*bbox_dim+4*c] = tx; 
+      pred_data[i*bbox_dim+4*c+1] = ty;
+      pred_data[i*bbox_dim+4*c+2] = tx+tw-1; 
+      pred_data[i*bbox_dim+4*c+3] = ty+th-1;
+    }
+  }
+}
+
+template
+void DecodeBBoxesWithPrior(const float* bbox_data, const vector<BBox> prior_bboxes,  
+        const int bbox_dim, const float* means, const float* stds, 
+        float* pred_data);
+
+template
+void DecodeBBoxesWithPrior(const double* bbox_data, const vector<BBox> prior_bboxes,  
+        const int bbox_dim, const double* means, const double* stds, 
+        double* pred_data);
+
 template<>
 void caffe_cpu_gemm<float>(const CBLAS_TRANSPOSE TransA,
     const CBLAS_TRANSPOSE TransB, const int M, const int N, const int K,
